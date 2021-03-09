@@ -17,3 +17,13 @@ target builds:
 * CoreMIDI on x86-64
 * CoreMIDI + JACK on x86-64
 * WinMM on x86-64
+
+## Commands Used
+
+### ALSA x86-64
+
+g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o librtmidi.so rtmidi_c.cpp rtmidi_c.h RtMidi.cpp RtMidi.h -lasound -lpthread
+
+### ALSA + JACK x86-64
+
+g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o librtmidi.so rtmidi_c.cpp rtmidi_c.h RtMidi.cpp RtMidi.h -lasound -lpthread
