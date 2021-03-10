@@ -7,8 +7,9 @@ These are intended to be used for my port/bindings of RtMidi to Java,
 
 ## Supported Platforms/Builds
 
-A build consists of a CPU architecture and API(s) pair, below are the 
-target builds:
+A build consists of a CPU architecture and API(s) pair.
+
+### Current Builds
 
 * ALSA on x86-64
 * ALSA + JACK on x86-64
@@ -22,6 +23,9 @@ target builds:
 * WinMM on x86-64
 
 ## Build method
+
+Downloaded source from 
+[RtMidi Releases](https://github.com/thestk/rtmidi/releases)
 
 ### ALSA x86-64 & aarch64
 
