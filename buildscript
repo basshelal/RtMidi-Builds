@@ -10,9 +10,11 @@ echo "CPU is $cpu"
 if [[ "$os" == "Linux" ]]; then
 
     if [[ -d "/usr/include/alsa" ]]; then
+        echo ""
         echo "*******************************************"
         echo "*****************  ALSA *******************"
         echo "*******************************************"
+        echo ""
 
         outdir="./libs/alsa-"$cpu""
         mkdir -p "$outdir"
@@ -32,9 +34,11 @@ if [[ "$os" == "Linux" ]]; then
     fi
 
     if [[ -d "/usr/include/jack" ]]; then
+        echo ""
         echo "*******************************************"
         echo "*************  ALSA + JACK ****************"
         echo "*******************************************"
+        echo ""
 
         outdir="./libs/alsa-jack-"$cpu""
         mkdir -p "$outdir"
