@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+os=$(uname -s)
+cpu=$(uname -m)
+
+echo "OS is $os"
+echo "CPU is $cpu"
+
+# Linux
+if [[ "$os" == "Linux" ]]; then
+
+    if [[ -d "/usr/include/alsa" ]]; then
+        echo "*******************************************"
+        echo "*****************  ALSA *******************"
+        echo "*******************************************"
+
+        outdir="./libs/alsa-"$cpu""
+        mkdir -p "$outdir"
+
+        echo "Compiling source files"
+
+        g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
+
+        echo "Creating library"
+
+        g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread
+
+        rm rtmidi_c.o RtMidi.o
+
+    else
+        echo -e "\033[0;31mAlsa headers not found!\033[0m"
+    fi
+
+    if [[ -d "/usr/include/jack" ]]; then
+        echo "*******************************************"
+        echo "*************  ALSA + JACK ****************"
+        echo "*******************************************"
+
+        outdir="./libs/alsa-jack-"$cpu""
+        mkdir -p "$outdir"
+
+        echo "Compiling source files"
+
+        g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
+
+        echo "Creating library"
+
+        g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread -ljack
+
+        rm rtmidi_c.o RtMidi.o
+
+    else
+        echo -e "\033[0;31mJack headers not found!\033[0m"
+    fi
+fi
+
+# Darwin
+if [[ "$os" == "Darwin" ]]; then
+    echo "Darwin"
+    # TODO
+fi
+
+# MinGw
+if [[ "$os" == "MinGw" ]]; then
+    echo "MinGw"
+    # TODO
+fi
+
+echo "Finished, output will be found in ./libs"
