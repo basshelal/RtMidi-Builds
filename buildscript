@@ -60,8 +60,26 @@ fi
 
 # Darwin
 if [[ "$os" == "Darwin" ]]; then
-    echo "Darwin"
-    # TODO
+
+    echo ""
+    echo "*******************************************"
+    echo "***************  CoreMIDI *****************"
+    echo "*******************************************"
+    echo ""
+
+    outdir="./libs/core-"$cpu""
+    mkdir -p "$outdir"
+
+    echo "Compiling source files"
+
+    g++ -Wall -c -fPIC -D__MACOSX_CORE__ rtmidi_c.cpp RtMidi.cpp -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
+
+    echo "Creating library"
+
+    g++ -Wall -shared -dylib -fPIC -D__MACOSX_CORE__ -o "$outdir/librtmidi.dylib" rtmidi_c.o RtMidi.o -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
+
+    rm rtmidi_c.o RtMidi.o
+
 fi
 
 # MinGw
