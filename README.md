@@ -26,10 +26,10 @@ A build consists of a CPU architecture and API(s) pair.
 
 ## Build method
 
-Downloaded source from 
+Download source from 
 [RtMidi Releases](https://github.com/thestk/rtmidi/releases)
 
-Run [`buildscript`](./buildscript) on:
+Run [`buildscript`](./buildscript) in the source directory on:
 
 * a GNU/Linux x86_64 machine for all ALSA builds (including armhf and aarch64)
 * a Darwin x86_64 machine for all CoreMIDI builds

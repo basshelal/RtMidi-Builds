@@ -10,6 +10,12 @@ error() {
     let "errors++"
 }
 
+checkError() {
+    if [[ $? != 0 ]]; then
+        error "An error occurred $*"
+    fi
+}
+
 os=$(uname -s)
 cpu=$(uname -m)
 
@@ -18,6 +24,17 @@ info "CPU is $cpu"
 
 # Linux
 if [[ "$os" == "Linux" ]]; then
+
+    # if [[ $UID != 0 ]]; then
+    #     error "Please run as sudo!"
+    #     exit 1
+    # fi
+
+    # Below doesn't fix the problem, we need to have the dependencies cross compiiled or downloaded from somewhere smh
+
+    # sudo ln -s /usr/lib/x86_64-linux-gnu/libasound.so /usr/lib/aarch64-linux-gnu/libasound.so
+
+    # sudo ln -s /usr/lib/x86_64-linux-gnu/libjack.so /usr/lib/aarch64-linux-gnu/libjack.so
 
     if [[ -d "/usr/include/alsa" ]]; then
         info "Compiling for ALSA"
@@ -29,48 +46,60 @@ if [[ "$os" == "Linux" ]]; then
 
         g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
 
+        checkError "Compiling source files for ALSA"
+
         info "Creating library for ALSA"
 
         g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread
 
+        checkError "Creating library for ALSA"
+
         rm rtmidi_c.o RtMidi.o
 
-        if [[ ! -z $(command -v arm-linux-gnueabihf-g++) ]]; then
+        if [[ ! -z $(command -v arm-linux-gnueabihf-g++-8) ]]; then
 
-            outdir="./libs/alsa-armhf"
+            outdir="./libs/alsa-arm"
             mkdir -p "$outdir"
 
-            info "Cross compiling source files for ALSA armhf"
+            info "Cross compiling source files for ALSA arm"
 
-            arm-linux-gnueabihf-g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
+            arm-linux-gnueabihf-g++-8 -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
 
-            info "Creating library for ALSA armhf"
+            checkError "Cross compiling source files for ALSA arm"
 
-            arm-linux-gnueabihf-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+            info "Creating library for ALSA arm"
+
+            arm-linux-gnueabihf-g++-8 -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread
+
+            checkError "Creating library for ALSA arm"
 
             rm rtmidi_c.o RtMidi.o
 
         else
-            error "Could not cross compile for ALSA armhf, missing arm-linux-gnueabihf-g++"
+            error "Could not cross compile for ALSA arm, missing arm-linux-gnueabihf-g++-8"
         fi
 
-        if [[ ! -z $(command -v aarch64-linux-gnu-g++) ]]; then
+        if [[ ! -z $(command -v aarch64-linux-gnu-g++-8) ]]; then
 
             outdir="./libs/alsa-aarch64"
             mkdir -p "$outdir"
 
             info "Cross compiling source files for ALSA aarch64"
 
-            aarch64-linux-gnu-g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
+            aarch64-linux-gnu-g++-8 -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
+
+            checkError "Cross compiling source files for ALSA aarch64"
 
             info "Creating library for ALSA aarch64"
 
-            aarch64-linux-gnu-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+            aarch64-linux-gnu-g++-8 -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread
+
+            checkError "Creating library for ALSA aarch64"
 
             rm rtmidi_c.o RtMidi.o
 
         else
-            error "Could not cross compile for ALSA aarch64, missing aarch64-linux-gnu-g++"
+            error "Could not cross compile for ALSA aarch64, missing aarch64-linux-gnu-g++-8"
         fi
 
     else
@@ -88,48 +117,60 @@ if [[ "$os" == "Linux" ]]; then
 
         g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
 
+        checkError "Compiling source files for ALSA + JACK"
+
         info "Creating library for ALSA + JACK"
 
         g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread -ljack
 
+        checkError "Creating library for ALSA + JACK"
+
         rm rtmidi_c.o RtMidi.o
 
-        if [[ ! -z $(command -v arm-linux-gnueabihf-g++) ]]; then
+        if [[ ! -z $(command -v arm-linux-gnueabihf-g++-8) ]]; then
 
-            outdir="./libs/alsa-jack-armhf"
+            outdir="./libs/alsa-jack-arm"
             mkdir -p "$outdir"
 
-            info "Cross compiling source files for ALSA + JACK armhf"
+            info "Cross compiling source files for ALSA + JACK arm"
 
-            arm-linux-gnueabihf-g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
+            arm-linux-gnueabihf-g++-8 -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
 
-            info "Creating library for ALSA + JACK armhf"
+            checkError "Cross compiling source files for ALSA + JACK arm"
 
-            arm-linux-gnueabihf-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+            info "Creating library for ALSA + JACK arm"
+
+            arm-linux-gnueabihf-g++-8 -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread -ljack
+
+            checkError "Creating library for ALSA + JACK arm"
 
             rm rtmidi_c.o RtMidi.o
 
         else
-            error "Could not cross compile for ALSA + JACK armhf, missing arm-linux-gnueabihf-g++"
+            error "Could not cross compile for ALSA + JACK arm, missing arm-linux-gnueabihf-g++-8"
         fi
 
-        if [[ ! -z $(command -v aarch64-linux-gnu-g++) ]]; then
+        if [[ ! -z $(command -v aarch64-linux-gnu-g++-8) ]]; then
 
             outdir="./libs/alsa-jack-aarch64"
             mkdir -p "$outdir"
 
             info "Compiling source files for ALSA + JACK aarch64"
 
-            aarch64-linux-gnu-g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
+            aarch64-linux-gnu-g++-8 -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
+
+            checkError "Compiling source files for ALSA + JACK aarch64"
 
             info "Creating library for ALSA + JACK aarch64"
 
-            aarch64-linux-gnu-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+            aarch64-linux-gnu-g++-8 -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread -ljack
+
+            checkError "Creating library for ALSA + JACK aarch64"
 
             rm rtmidi_c.o RtMidi.o
 
         else
-            error "Could not cross compile for ALSA + JACK aarch64, missing aarch64-linux-gnu-g++"
+            error "Could not cross compile for ALSA + JACK aarch64, missing aarch64-linux-gnu-g++-8"
         fi
 
     else
@@ -152,13 +193,20 @@ if [[ "$os" == "Darwin" ]]; then
 
     g++ -Wall -c -fPIC -D__MACOSX_CORE__ rtmidi_c.cpp RtMidi.cpp -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
 
+    checkError "Compiling source files"
+
     info "Creating library"
 
     g++ -Wall -shared -dylib -fPIC -D__MACOSX_CORE__ -o "$outdir/librtmidi.dylib" rtmidi_c.o RtMidi.o -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
 
+    checkError "Creating library"
+
     rm rtmidi_c.o RtMidi.o
 
     # TODO CoreMIDI + JACK
+
+    # /usr/local/include/jack
+    # install headers using brew install jack
 
 fi
 
