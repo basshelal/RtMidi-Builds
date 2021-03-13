@@ -1,91 +1,172 @@
 #!/usr/bin/env bash
 
+info() {
+    echo -e "\e[42mINFO:"$*"\e[49m"
+}
+
+errors=0
+error() {
+    echo -e "\e[41mERROR:"$*"\e[49m"
+    let "errors++"
+}
+
 os=$(uname -s)
 cpu=$(uname -m)
 
-echo "OS is $os"
-echo "CPU is $cpu"
+info "OS is $os"
+info "CPU is $cpu"
 
 # Linux
 if [[ "$os" == "Linux" ]]; then
 
     if [[ -d "/usr/include/alsa" ]]; then
-        echo ""
-        echo "*******************************************"
-        echo "*****************  ALSA *******************"
-        echo "*******************************************"
-        echo ""
+        info "Compiling for ALSA"
 
         outdir="./libs/alsa-"$cpu""
         mkdir -p "$outdir"
 
-        echo "Compiling source files"
+        info "Compiling source files for ALSA"
 
         g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
 
-        echo "Creating library"
+        info "Creating library for ALSA"
 
         g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread
 
         rm rtmidi_c.o RtMidi.o
 
+        if [[ ! -z $(command -v arm-linux-gnueabihf-g++) ]]; then
+
+            outdir="./libs/alsa-armhf"
+            mkdir -p "$outdir"
+
+            info "Cross compiling source files for ALSA armhf"
+
+            arm-linux-gnueabihf-g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
+
+            info "Creating library for ALSA armhf"
+
+            arm-linux-gnueabihf-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+
+            rm rtmidi_c.o RtMidi.o
+
+        else
+            error "Could not cross compile for ALSA armhf, missing arm-linux-gnueabihf-g++"
+        fi
+
+        if [[ ! -z $(command -v aarch64-linux-gnu-g++) ]]; then
+
+            outdir="./libs/alsa-aarch64"
+            mkdir -p "$outdir"
+
+            info "Cross compiling source files for ALSA aarch64"
+
+            aarch64-linux-gnu-g++ -Wall -c -fPIC -D__LINUX_ALSA__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread
+
+            info "Creating library for ALSA aarch64"
+
+            aarch64-linux-gnu-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+
+            rm rtmidi_c.o RtMidi.o
+
+        else
+            error "Could not cross compile for ALSA aarch64, missing aarch64-linux-gnu-g++"
+        fi
+
     else
-        echo -e "\033[0;31mAlsa headers not found!\033[0m"
+        error "Alsa headers not found!"
+        error "Run sudo apt install libasound2-dev"
     fi
 
     if [[ -d "/usr/include/jack" ]]; then
-        echo ""
-        echo "*******************************************"
-        echo "*************  ALSA + JACK ****************"
-        echo "*******************************************"
-        echo ""
+        info "Compiling for ALSA + JACK"
 
         outdir="./libs/alsa-jack-"$cpu""
         mkdir -p "$outdir"
 
-        echo "Compiling source files"
+        info "Compiling source files for ALSA + JACK"
 
         g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
 
-        echo "Creating library"
+        info "Creating library for ALSA + JACK"
 
         g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o -lasound -lpthread -ljack
 
         rm rtmidi_c.o RtMidi.o
 
+        if [[ ! -z $(command -v arm-linux-gnueabihf-g++) ]]; then
+
+            outdir="./libs/alsa-jack-armhf"
+            mkdir -p "$outdir"
+
+            info "Cross compiling source files for ALSA + JACK armhf"
+
+            arm-linux-gnueabihf-g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
+
+            info "Creating library for ALSA + JACK armhf"
+
+            arm-linux-gnueabihf-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+
+            rm rtmidi_c.o RtMidi.o
+
+        else
+            error "Could not cross compile for ALSA + JACK armhf, missing arm-linux-gnueabihf-g++"
+        fi
+
+        if [[ ! -z $(command -v aarch64-linux-gnu-g++) ]]; then
+
+            outdir="./libs/alsa-jack-aarch64"
+            mkdir -p "$outdir"
+
+            info "Compiling source files for ALSA + JACK aarch64"
+
+            aarch64-linux-gnu-g++ -Wall -c -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -lasound -lpthread -ljack
+
+            info "Creating library for ALSA + JACK aarch64"
+
+            aarch64-linux-gnu-g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o "$outdir/librtmidi.so" rtmidi_c.o RtMidi.o
+
+            rm rtmidi_c.o RtMidi.o
+
+        else
+            error "Could not cross compile for ALSA + JACK aarch64, missing aarch64-linux-gnu-g++"
+        fi
+
     else
-        echo -e "\033[0;31mJack headers not found!\033[0m"
+        error "Jack headers not found!"
+        error "Run sudo apt install libjack-jackd2-dev"
     fi
 fi
 
 # Darwin
 if [[ "$os" == "Darwin" ]]; then
 
-    echo ""
-    echo "*******************************************"
-    echo "***************  CoreMIDI *****************"
-    echo "*******************************************"
-    echo ""
+    # TODO check if headers are found
+
+    info "Compiling for CoreMIDI"
 
     outdir="./libs/core-"$cpu""
     mkdir -p "$outdir"
 
-    echo "Compiling source files"
+    info "Compiling source files"
 
     g++ -Wall -c -fPIC -D__MACOSX_CORE__ rtmidi_c.cpp RtMidi.cpp -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
 
-    echo "Creating library"
+    info "Creating library"
 
     g++ -Wall -shared -dylib -fPIC -D__MACOSX_CORE__ -o "$outdir/librtmidi.dylib" rtmidi_c.o RtMidi.o -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
 
     rm rtmidi_c.o RtMidi.o
 
+    # TODO CoreMIDI + JACK
+
 fi
 
 # MinGw
 if [[ "$os" == "MinGw" ]]; then
-    echo "MinGw"
+    info "Compiling for MinGw"
     # TODO
 fi
 
-echo "Finished, output will be found in ./libs"
+info "Finished with "$errors" errors"
+info "Output will be found in ./libs"
