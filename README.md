@@ -13,6 +13,8 @@ A build consists of a CPU architecture and API(s) pair.
 
 * ALSA on x86-64
 * ALSA + JACK on x86-64
+* ALSA on armhf
+* ALSA + JACK on armhf
 * ALSA on aarch64
 * ALSA + JACK on aarch64
 
@@ -27,10 +29,8 @@ A build consists of a CPU architecture and API(s) pair.
 Downloaded source from 
 [RtMidi Releases](https://github.com/thestk/rtmidi/releases)
 
-### ALSA x86-64 & aarch64
+Run [`buildscript`](./buildscript) on:
 
-`g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -o librtmidi.so rtmidi_c.cpp rtmidi_c.h RtMidi.cpp RtMidi.h -lasound -lpthread`
-
-### ALSA + JACK x86-64 & aarch64
-
-`g++ -Wall -shared -fPIC -D__LINUX_ALSA__ -D__UNIX_JACK__ -o librtmidi.so rtmidi_c.cpp rtmidi_c.h RtMidi.cpp RtMidi.h -lasound -lpthread -ljack`
+* a GNU/Linux x86_64 machine for all ALSA builds (including armhf and aarch64)
+* a Darwin x86_64 machine for all CoreMIDI builds
+* a MinGW x86_64 machine for all WinMM builds
