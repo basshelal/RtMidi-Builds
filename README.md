@@ -75,4 +75,4 @@ The below steps are for an Ubunutu 20.04 based machine.
 
 7. Install the cross compile tools, if not already installed:
 
-    `sudo apt install arm-linux-gnueabihf-g++-8 aarch64-linux-gnu-g++-8`
+    `sudo apt install g++-8-arm-linux-gnueabihf g++-8-aarch64-linux-gnu`
