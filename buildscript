@@ -24,8 +24,15 @@ info "CPU is $cpu"
 
 # Linux
 if [[ "$os" == "Linux" ]]; then
+    if [[ "$cpu" != "x86_64" ]]; then
+        error "Cannot compile for Linux non x86_64!"
+        exit
+    fi
 
-    if [[ -d "/usr/include/alsa" ]]; then
+    if [[ ! -d "/usr/include/alsa" ]]; then
+        error "Alsa headers not found!"
+        error "Run sudo apt install libasound2-dev"
+    else
         info "Compiling for ALSA"
 
         outdir="./libs/alsa-"$cpu""
@@ -45,8 +52,9 @@ if [[ "$os" == "Linux" ]]; then
 
         rm rtmidi_c.o RtMidi.o
 
-        if [[ ! -z $(command -v arm-linux-gnueabihf-g++-8) ]]; then
-
+        if [[ -z $(command -v arm-linux-gnueabihf-g++-8) ]]; then
+            error "Could not cross compile for ALSA arm, missing arm-linux-gnueabihf-g++-8"
+        else
             outdir="./libs/alsa-arm"
             mkdir -p "$outdir"
 
@@ -63,13 +71,11 @@ if [[ "$os" == "Linux" ]]; then
             checkError "Creating library for ALSA arm"
 
             rm rtmidi_c.o RtMidi.o
-
-        else
-            error "Could not cross compile for ALSA arm, missing arm-linux-gnueabihf-g++-8"
         fi
 
-        if [[ ! -z $(command -v aarch64-linux-gnu-g++-8) ]]; then
-
+        if [[ -z $(command -v aarch64-linux-gnu-g++-8) ]]; then
+            error "Could not cross compile for ALSA aarch64, missing aarch64-linux-gnu-g++-8"
+        else
             outdir="./libs/alsa-aarch64"
             mkdir -p "$outdir"
 
@@ -86,17 +92,13 @@ if [[ "$os" == "Linux" ]]; then
             checkError "Creating library for ALSA aarch64"
 
             rm rtmidi_c.o RtMidi.o
-
-        else
-            error "Could not cross compile for ALSA aarch64, missing aarch64-linux-gnu-g++-8"
         fi
-
-    else
-        error "Alsa headers not found!"
-        error "Run sudo apt install libasound2-dev"
     fi
 
-    if [[ -d "/usr/include/jack" ]]; then
+    if [[ ! -d "/usr/include/jack" ]]; then
+        error "Jack headers not found!"
+        error "Run sudo apt install libjack-jackd2-dev"
+    else
         info "Compiling for ALSA + JACK"
 
         outdir="./libs/alsa-jack-"$cpu""
@@ -116,8 +118,9 @@ if [[ "$os" == "Linux" ]]; then
 
         rm rtmidi_c.o RtMidi.o
 
-        if [[ ! -z $(command -v arm-linux-gnueabihf-g++-8) ]]; then
-
+        if [[ -z $(command -v arm-linux-gnueabihf-g++-8) ]]; then
+            error "Could not cross compile for ALSA + JACK arm, missing arm-linux-gnueabihf-g++-8"
+        else
             outdir="./libs/alsa-jack-arm"
             mkdir -p "$outdir"
 
@@ -134,13 +137,11 @@ if [[ "$os" == "Linux" ]]; then
             checkError "Creating library for ALSA + JACK arm"
 
             rm rtmidi_c.o RtMidi.o
-
-        else
-            error "Could not cross compile for ALSA + JACK arm, missing arm-linux-gnueabihf-g++-8"
         fi
 
-        if [[ ! -z $(command -v aarch64-linux-gnu-g++-8) ]]; then
-
+        if [[ -z $(command -v aarch64-linux-gnu-g++-8) ]]; then
+            error "Could not cross compile for ALSA + JACK aarch64, missing aarch64-linux-gnu-g++-8"
+        else
             outdir="./libs/alsa-jack-aarch64"
             mkdir -p "$outdir"
 
@@ -157,21 +158,12 @@ if [[ "$os" == "Linux" ]]; then
             checkError "Creating library for ALSA + JACK aarch64"
 
             rm rtmidi_c.o RtMidi.o
-
-        else
-            error "Could not cross compile for ALSA + JACK aarch64, missing aarch64-linux-gnu-g++-8"
         fi
-
-    else
-        error "Jack headers not found!"
-        error "Run sudo apt install libjack-jackd2-dev"
     fi
 fi
 
 # Darwin
 if [[ "$os" == "Darwin" ]]; then
-
-    # TODO check if headers are found
 
     info "Compiling for CoreMIDI"
 
@@ -192,11 +184,31 @@ if [[ "$os" == "Darwin" ]]; then
 
     rm rtmidi_c.o RtMidi.o
 
-    # TODO CoreMIDI + JACK
+    if [[ ! -d "/usr/local/include/jack" ]]; then
+        error "Jack headers not found!"
+        error "Run brew install jack"
+    else
+        # libjack.dylib is located at /usr/local/lib/libjack.dylib
 
-    # /usr/local/include/jack
-    # install headers using brew install jack
+        info "Compiling for CoreMIDI + JACK"
 
+        outdir="./libs/core-jack-"$cpu""
+        mkdir -p "$outdir"
+
+        info "Compiling source files for CoreMIDI + JACK"
+
+        g++ -Wall -c -fPIC -D__MACOSX_CORE__ -D__UNIX_JACK__ rtmidi_c.cpp RtMidi.cpp -framework CoreMIDI -framework CoreAudio -framework CoreFoundation -ljack
+
+        checkError "Compiling source files for CoreMIDI + JACK"
+
+        info "Creating library for CoreMIDI + JACK"
+
+        g++ -Wall -shared -dylib -fPIC -D__MACOSX_CORE__ -D__UNIX_JACK__ -o "$outdir/librtmidi.dylib" rtmidi_c.o RtMidi.o -framework CoreMIDI -framework CoreAudio -framework CoreFoundation -ljack
+
+        checkError "Creating library for CoreMIDI + JACK"
+
+        rm rtmidi_c.o RtMidi.o
+    fi
 fi
 
 # MinGw
