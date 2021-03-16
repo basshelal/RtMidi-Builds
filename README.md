@@ -17,11 +17,11 @@ A build consists of a CPU architecture and API(s) pair.
 * ALSA + JACK on armhf
 * ALSA on aarch64
 * ALSA + JACK on aarch64
+* CoreMIDI on x86-64
+* CoreMIDI + JACK on x86-64
 
 ### Future Builds
 
-* CoreMIDI on x86-64
-* CoreMIDI + JACK on x86-64
 * WinMM on x86-64
 
 ## Build method
