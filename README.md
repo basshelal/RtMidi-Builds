@@ -1,41 +1,48 @@
 # RtMidi Builds
 
-Builds of [RtMidi](https://github.com/thestk/rtmidi) for various platforms.
+Builds of [RtMidi](https://github.com/thestk/rtmidi) for multiple platforms.
 
-These are intended to be used for my port/bindings of RtMidi to Java,
+These are intended to be used for my bindings of RtMidi to Java,
 [JRtMidi](https://github.com/basshelal/JRtMidi).
 
 ## Supported Platforms/Builds
 
-A build consists of a CPU architecture and API(s) pair.
+A build consists of an API(s) and CPU architecture pair.
 
 ### Current Builds
 
-* ALSA on x86-64
-* ALSA + JACK on x86-64
-* ALSA on armhf
-* ALSA + JACK on armhf
-* ALSA on aarch64
-* ALSA + JACK on aarch64
-* CoreMIDI on x86-64
-* CoreMIDI + JACK on x86-64
+#### `x86_64`
 
-### Future Builds
+* ALSA on `x86-64`
+* ALSA + JACK on `x86-64`
+* CoreMIDI on `x86-64`
+* CoreMIDI + JACK on `x86-64`
+* WinMM on `x86-64`
 
-* WinMM on x86-64
+#### `armhf` and `aarch64`
 
-## Build method
+* ALSA on `armhf`
+* ALSA + JACK on `armhf`
+* ALSA on `aarch64`
+* ALSA + JACK on `aarch64`
+
+### *Possible* Future Builds
+
+* CoreMIDI on `aarch64`
+* CoreMIDI + JACK on `aarch64`
+
+## Build Method (for reference)
 
 Download source from 
 [RtMidi Releases](https://github.com/thestk/rtmidi/releases)
 
 Run [`buildscript`](./buildscript) in the source directory on:
 
-* a GNU/Linux x86_64 machine for all ALSA builds (including armhf and aarch64, read [GNU/Linux Cross Compiling](#gnulinux-cross-compiling)
+* a GNU/Linux x86_64 machine for all ALSA builds (including `armhf` and `aarch64`, read [GNU/Linux Cross Compiling](#gnulinux-cross-compiling) for full instructions and details)
 * a Darwin x86_64 machine for all CoreMIDI builds
-* a MinGW x86_64 machine for all WinMM builds
+* a MSYS2 (with mingw-w64 installed) x86_64 machine for all WinMM builds, see [Windows Prerequisites](#windows-prerequisites) for more info
 
-## GNU/Linux Cross Compiling
+### GNU/Linux Cross Compiling
 
 To cross compile for GNU/Linux `armhf` and `aarch64` you need some additional steps.
 
@@ -47,7 +54,7 @@ The below steps are for an Ubunutu 20.04 based machine.
 
     `sudo dpkg --add-architecture arm64`
 
-2. Create a new .list file in `/etc/apt/sources.list.d`:
+2. Create a new `.list` file in `/etc/apt/sources.list.d`:
 
     `sudo touch /etc/apt/sources.list.d/arm-cross-compile-sources.list`
 
@@ -63,7 +70,9 @@ The below steps are for an Ubunutu 20.04 based machine.
     deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-backports main restricted universe multiverse
     ```
 
-4. Update `/etc/apt/sources.list` to include your default architecture (if it doesn't already), otherwise apt will try to use your newly added architectures in those sources which may cause errors as it did with me. Add `[arch=amd64]` **for each line** in `/etc/apt/sources.list` as follows:
+4. Update `/etc/apt/sources.list` to include your default architecture (if it doesn't already), otherwise apt will try to use your newly added architectures in those sources which may cause errors as it did with me.
+   
+   Add `[arch=amd64]` **for each line** in `/etc/apt/sources.list` as follows:
 
     `deb [arch=amd64] http://us.archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse`
 
@@ -76,3 +85,24 @@ The below steps are for an Ubunutu 20.04 based machine.
 7. Install the cross compile tools, if not already installed:
 
     `sudo apt install g++-8-arm-linux-gnueabihf g++-8-aarch64-linux-gnu`
+
+### Windows Prerequisites
+
+To build for Windows, you need to install some additional software to *"emulate"*
+a GNU environment, namely:
+
+1. [`mingw-w64`](http://mingw-w64.org/doku.php) which provides GCC for Windows.
+   
+   After installation, add the `bin` directory containing `g++` to your
+   system `PATH` variable.
+
+2. [`MSYS2`](https://www.msys2.org/) which provides some additional GNU/Linux
+   utilities, namely `bash` to run the [`buildscript`](./buildscript).
+   
+   As before,
+   add the directory containing the `bin` directory containing `bash` to 
+   your system `PATH` variable.
+
+3. Now you can open a Windows PowerShell terminal and use `bash`, from which,
+   you can execute the [`buildscript`](./buildscript) which will then be able
+   to call `mingw-w64`'s `g++`
