@@ -211,10 +211,32 @@ if [[ "$os" == "Darwin" ]]; then
     fi
 fi
 
-# MinGw
-if [[ "$os" == "MinGw" ]]; then
-    info "Compiling for MinGw"
-    # TODO
+# MSYS (Windows)
+if [[ "$os" == "MSYS"* ]]; then
+    info "Compiling for MSYS"
+
+    if [[ "$cpu" != "x86_64" ]]; then
+        error "Cannot compile for MSYS non x86_64!"
+        exit
+    fi
+    info "Compiling for WinMM"
+
+    outdir="./libs/winmm-"$cpu""
+    mkdir -p "$outdir"
+
+    info "Compiling source files for WinMM"
+
+    g++ -Wall -c -fPIC -D__WINDOWS_MM__ rtmidi_c.cpp RtMidi.cpp
+
+    checkError "Compiling source files for WinMM"
+
+    info "Creating library for WinMM"
+
+    g++ -Wall -shared -fPIC -D__WINDOWS_MM__ -o "$outdir/librtmidi.dll" -Wl,-out-implib,librtmidi.a,--export-all-symbols,--enable-auto-image-base,--enable-auto-import rtmidi_c.o RtMidi.o -lwinmm
+
+    checkError "Creating library for WinMM"
+
+    rm rtmidi_c.o RtMidi.o librtmidi.a
 fi
 
 info "Finished with "$errors" errors"
