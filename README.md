@@ -108,3 +108,8 @@ a GNU environment, namely:
 3. Now you can open a Windows PowerShell terminal and use `bash`, from which,
    you can execute the [`buildscript`](./buildscript) which will then be able
    to call `mingw-w64`'s `g++`
+
+
+## LICENSE
+
+While this project uses the [MIT License](./LICENSE), [RtMidi is subject to its own license](https://github.com/thestk/rtmidi/blob/master/LICENSE) which is similar to the MIT License, with the added *feature* that modifications be sent to the developer.
